@@ -1,0 +1,9 @@
+name: drl_to_excel
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13
+  - pip
+  - pip:
+      - -e ..[dev]

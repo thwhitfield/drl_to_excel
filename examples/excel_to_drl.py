@@ -10,14 +10,10 @@ This script demonstrates:
 """
 
 from pathlib import Path
-import sys
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.excel_parser import parse_excel
-from src.drl_writer import write_drl, DRLWriter
-from src.ir import SimpleCondition, Operator, Action, ActionType
+from drl_to_excel.excel_parser import parse_excel
+from drl_to_excel.drl_writer import write_drl, DRLWriter
+from drl_to_excel.ir import SimpleCondition, Operator
 
 
 def main():

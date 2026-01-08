@@ -11,7 +11,13 @@ Excel ←→ IR ←→ DRL
 ## Installation
 
 ```bash
-pip install openpyxl
+# From source (development)
+pip install -e ".[dev]"
+
+# Or with conda
+cd setup
+conda env create -f environment.yml
+conda activate drl_to_excel
 ```
 
 ## Quick Start
@@ -19,8 +25,7 @@ pip install openpyxl
 ### Excel → DRL
 
 ```python
-from src.excel_parser import parse_excel
-from src.drl_writer import write_drl
+from drl_to_excel import parse_excel, write_drl
 
 # Parse Excel decision table into IR
 ruleset = parse_excel("fraud_rules.xlsx")
@@ -35,9 +40,8 @@ write_drl(ruleset, "fraud_rules.drl")
 ### Programmatic Rule Creation
 
 ```python
-from src.ir import (
-    RuleSet, Rule, FactPattern, Action, ActionType,
-    SimpleCondition, RangeCondition, Operator,
+from drl_to_excel import (
+    RuleSet, Rule, FactPattern,
     score_threshold, amount_range, decline_action,
 )
 
@@ -98,21 +102,26 @@ The parser expects standard Drools decision table format:
 ```
 drl_to_excel/
 ├── src/
-│   ├── ir.py              # Intermediate Representation
-│   ├── excel_parser.py    # Excel → IR
-│   └── drl_writer.py      # IR → DRL
+│   └── drl_to_excel/
+│       ├── __init__.py       # Package exports
+│       ├── ir.py             # Intermediate Representation
+│       ├── excel_parser.py   # Excel → IR
+│       └── drl_writer.py     # IR → DRL
 ├── tests/
 │   ├── test_ir.py
 │   ├── test_excel_parser.py
-│   └── fixtures/          # Sample Excel files
-└── examples/
-    └── excel_to_drl.py    # Example workflow
+│   └── fixtures/             # Sample Excel files
+├── examples/
+│   └── excel_to_drl.py       # Example workflow
+├── setup/
+│   └── environment.yml       # Conda environment
+└── pyproject.toml            # Package configuration
 ```
 
 ## Running Tests
 
 ```bash
-pip install pytest
+pip install -e ".[dev]"
 python -m pytest tests/ -v
 ```
 

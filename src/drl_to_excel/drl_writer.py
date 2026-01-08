@@ -5,7 +5,7 @@ Serializes IR (RuleSet) to Drools Rule Language (DRL) files.
 """
 
 from pathlib import Path
-from src.ir import RuleSet
+from drl_to_excel.ir import RuleSet
 
 
 def write_drl(ruleset: RuleSet, file_path: str | Path | None = None) -> str:

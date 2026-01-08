@@ -20,7 +20,7 @@ from typing import Any
 from openpyxl import load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-from src.ir import (
+from drl_to_excel.ir import (
     Operator, ActionType,
     SimpleCondition, RangeCondition, Condition,
     FactPattern, Action, Rule, RuleSet,

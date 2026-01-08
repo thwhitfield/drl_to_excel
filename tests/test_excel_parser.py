@@ -2,8 +2,8 @@
 
 import pytest
 from pathlib import Path
-from src.excel_parser import ExcelParser, parse_excel
-from src.ir import Operator, ActionType, SimpleCondition, RangeCondition
+from drl_to_excel.excel_parser import ExcelParser, parse_excel
+from drl_to_excel.ir import Operator, ActionType, SimpleCondition, RangeCondition
 
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"

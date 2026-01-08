@@ -1,7 +1,7 @@
 """Tests for the Intermediate Representation module."""
 
 import pytest
-from src.ir import (
+from drl_to_excel.ir import (
     Operator, ActionType,
     SimpleCondition, RangeCondition, BucketCondition, NullCheckCondition,
     FactPattern, Action, Rule, RuleSet,
