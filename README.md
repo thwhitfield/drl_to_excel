@@ -37,38 +37,87 @@ ruleset.rules[0].salience = 100
 write_drl(ruleset, "fraud_rules.drl")
 ```
 
-### Programmatic Rule Creation
+### DRL → Excel (Roundtrip)
+
+```python
+from drl_to_excel import parse_drl, write_excel
+
+# Parse DRL file into IR
+ruleset = parse_drl("fraud_rules.drl")
+
+# Export back to Excel
+write_excel(ruleset, "fraud_rules.xlsx")
+```
+
+### Fluent Rule Builder API
+
+```python
+from drl_to_excel import RuleBuilder, RuleSetBuilder, write_drl
+
+# Create rules using the fluent API
+rule = (RuleBuilder("HighRiskTransaction")
+    .with_fact("Transaction", "tx")
+    .when_score_above(0.8)
+    .when_amount_between(1000, 10000)
+    .when_category("ELECTRONICS")
+    .then_decline()
+    .with_salience(100)
+    .build())
+
+ruleset = (RuleSetBuilder("FraudRules")
+    .package("com.example.fraud")
+    .imports(["com.example.model.Transaction"])
+    .add_rule(rule)
+    .build())
+
+print(ruleset.to_drl())
+```
+
+### A/B Test Variant Generation
 
 ```python
 from drl_to_excel import (
-    RuleSet, Rule, FactPattern,
-    score_threshold, amount_range, decline_action,
+    RuleBuilder, generate_threshold_variants, write_drl
 )
 
-# Create rules using helper functions
-rule = Rule(
-    name="HighRiskTransaction",
-    fact_patterns=[
-        FactPattern(
-            fact_type="Transaction",
-            binding="tx",
-            conditions=[
-                score_threshold(">", 0.8),
-                amount_range(1000, 10000),
-            ]
-        )
-    ],
-    actions=[decline_action()]
-)
+# Create base rule
+base_rule = (RuleBuilder("HighScoreDecline")
+    .with_fact("Transaction", "tx")
+    .when_score_above(0.8)
+    .then_decline()
+    .build())
 
-ruleset = RuleSet(
-    name="FraudRules",
-    package="com.example.fraud",
-    imports=["com.example.model.Transaction"],
-    rules=[rule]
+# Generate 5 variants with different thresholds
+variants = generate_threshold_variants(
+    base_rule,
+    field="score",
+    thresholds=[0.7, 0.75, 0.8, 0.85, 0.9],
+    variant_group="score_ab_test"
 )
+```
 
-print(ruleset.to_drl())
+### Bucketed A/B Testing
+
+```python
+from drl_to_excel import RuleBuilder
+
+# Control group: 50% of traffic (card digits 0-4)
+control = (RuleBuilder("Control")
+    .with_fact("Transaction", "tx")
+    .when_score_above(0.8)
+    .when_bucketed("cardLastDigit", [0, 1, 2, 3, 4])
+    .then_decline()
+    .as_variant("control", "threshold_test")
+    .build())
+
+# Treatment group: 50% of traffic (card digits 5-9)
+treatment = (RuleBuilder("Treatment")
+    .with_fact("Transaction", "tx")
+    .when_score_above(0.7)
+    .when_bucketed("cardLastDigit", [5, 6, 7, 8, 9])
+    .then_decline()
+    .as_variant("treatment", "threshold_test")
+    .build())
 ```
 
 ## Excel Format
@@ -97,6 +146,16 @@ The parser expects standard Drools decision table format:
 | `Rule` | Single rule with patterns, actions, salience |
 | `RuleSet` | Top-level container with package, imports, rules |
 
+## Generation API
+
+| Function | Purpose |
+|----------|---------|
+| `generate_threshold_variants()` | Sweep a parameter across multiple values |
+| `generate_bucketed_variants()` | Create N equal traffic buckets |
+| `add_bucket_to_rule()` | Add bucketing condition to existing rule |
+| `RuleBuilder` | Fluent API for building rules |
+| `RuleSetBuilder` | Fluent API for building rule sets |
+
 ## Project Structure
 
 ```
@@ -106,13 +165,20 @@ drl_to_excel/
 │       ├── __init__.py       # Package exports
 │       ├── ir.py             # Intermediate Representation
 │       ├── excel_parser.py   # Excel → IR
-│       └── drl_writer.py     # IR → DRL
+│       ├── excel_writer.py   # IR → Excel
+│       ├── drl_parser.py     # DRL → IR
+│       ├── drl_writer.py     # IR → DRL
+│       └── generators.py     # A/B variant generation
 ├── tests/
 │   ├── test_ir.py
 │   ├── test_excel_parser.py
+│   ├── test_excel_writer.py
+│   ├── test_drl_parser.py
+│   ├── test_generators.py
 │   └── fixtures/             # Sample Excel files
 ├── examples/
-│   └── excel_to_drl.py       # Example workflow
+│   ├── excel_to_drl.py       # Basic workflow
+│   └── ab_variants.py        # A/B test generation
 ├── setup/
 │   └── environment.yml       # Conda environment
 └── pyproject.toml            # Package configuration
@@ -128,6 +194,6 @@ python -m pytest tests/ -v
 ## Roadmap
 
 - [x] **Phase 1**: Core IR + Excel → DRL
-- [ ] **Phase 2**: DRL → IR parser
-- [ ] **Phase 3**: IR → Excel writer (roundtrip support)
-- [ ] **Phase 4**: Programmatic generation API (A/B variants, bucketing helpers)
+- [x] **Phase 2**: DRL → IR parser
+- [x] **Phase 3**: IR → Excel writer (roundtrip support)
+- [x] **Phase 4**: Programmatic generation API (A/B variants, bucketing helpers)
